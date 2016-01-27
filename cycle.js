@@ -27,8 +27,11 @@ function intent(DOM) {
 
 function model(actions, props$) {
   const initialValue$ = props$.map(props => props.value).first();
-  const value$ = initialValue$.concat(actions.changeValue$).distinctUntilChanged();
-  // TODO: how to ignore changeValue$ when props$.isDisabled?
+  const value$ = initialValue$.concat(
+    actions.changeValue$.withLatestFrom(props$)
+      .filter(([value, props]) => !props.isDisabled)
+      .map(([value, props]) => value)
+  ).distinctUntilChanged();
   return Observable.combineLatest(value$, props$, (value, props) => ({
     // ...props,
     options: props.options,
