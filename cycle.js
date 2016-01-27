@@ -41,7 +41,7 @@ function view(state$) {
   return state$.map(state => (
     div('.toggle', _.map(state.options, option => (
       div('.toggle_side', {
-        className: classNames({selected: option.value === state.value}),
+        className: classNames({disabled: state.isDisabled, selected: option.value === state.value}),
         dataset: {value: option.value},
       },
       option.name)
@@ -68,15 +68,16 @@ function main({DOM}) {
     {name: 'Bar', value: 'bar'},
     {name: 'Pie', value: 'pie'},
   ]
-  const toggleProps$ = Observable.of({
+
+  const disable$ = DOM.select('.disable').events('click').map(ev => true);
+  const enable$ = DOM.select('.enable').events('click').map(ev => false);
+  const isDisabled$ = disable$.merge(enable$).startWith(false);
+  const toggleProps$ = isDisabled$.map(isDisabled => ({
     options,
     value: options[0].value,
-    isDisabled: false,
-  });
+    isDisabled,
+  }));
   const toggle = Toggle({DOM, props: toggleProps$});
-
-  // how to update toggleProps$'s isDisabled here?
-  DOM.select('.disable').events('click').map
 
   return {
     DOM: Observable.of(
